@@ -1,15 +1,21 @@
 package com.ll.gramgram.boundedContext.member.controller;
+//boundedContext 디렉토리 사용 이유: 개별? 개발? 모듈(member, likeableperson, insta)
+// standard 디렉토리: 공통 모듈(다른 프로젝트에서도 사용 가능)
 
 import com.ll.gramgram.boundedContext.member.entity.Member;
 import com.ll.gramgram.boundedContext.member.service.MemberService;
+import jakarta.servlet.http.HttpSession;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.userdetails.MapReactiveUserDetailsService;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -162,5 +168,33 @@ public class MemberControllerTests {
                 .andExpect(content().string(containsString("""
                         <input type="submit" value="로그인"
                         """.stripIndent().trim())));
+    }
+
+    @Test
+    // @Rollback(value = false) // DB에 흔적이 남는다.
+    @DisplayName("로그인 처리")
+    void t005() throws Exception {
+        // 로그인이 잘 처리되었는지 확인하는 코드
+        // WHEN
+        ResultActions resultActions = mvc
+                .perform(post("/member/login")
+                        .with(csrf()) // CSRF 키 생성
+                        .param("username", "user1")
+                        .param("password", "1234")
+                )
+                .andDo(print());
+
+        //세션에 접근해서 값을 가져온 뒤 확인까지
+        MvcResult mvcResult = resultActions.andReturn();
+        HttpSession httpSession = mvcResult.getRequest().getSession(false);
+        SecurityContext securityContext = (SecurityContext)httpSession.getAttribute("SPRING_SECURITY_CONTEXT");
+        User user = (User)securityContext.getAuthentication().getPrincipal();
+
+        assertThat(user.getUsername()).isEqualTo("user1");
+
+        // THEN
+        resultActions
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("/**"));
     }
 }

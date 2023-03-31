@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
 @Configuration
-@Profile({"dev", "test"})
+@Profile({"dev", "test"}) // 개발 환경과 테스트 환경에서만 사용하겠다
 public class NotProd {
     @Bean
     CommandLineRunner initData(

@@ -14,6 +14,10 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Transactional(readOnly = false)
 public class CustomUserDetailsService implements UserDetailsService {
+    //SpringSecurity 내부(default: userDetailsService): 회원 리스트?, 로그인 처리 (-> default 이전에 우리가 만든 customUserDetailsService에게 일을 넘김)
+    //DB 내부: Member
+    //customUserDetailsService이 없다면 DB를 회원 리스트로 인정해주지 않음. -> UserDetailsService가 작동되지 않도록 하기 위함.
+
     private final MemberRepository memberRepository;
 
     @Override
@@ -23,3 +27,4 @@ public class CustomUserDetailsService implements UserDetailsService {
         return new User(member.getUsername(), member.getPassword(), member.getGrantedAuthorities());
     }
 }
+
