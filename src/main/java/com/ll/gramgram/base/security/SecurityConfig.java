@@ -18,7 +18,7 @@ public class SecurityConfig {
         http
                 .formLogin(
                         formLogin -> formLogin
-                                .loginPage("/member/login") //login url 변경을 SpringSecurity에서 알려줌.ㄹ
+                                .loginPage("/member/login") //login url 변경을 SpringSecurity에서 알려줌.
                 )
                 .logout(
                         logout -> logout

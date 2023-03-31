@@ -17,9 +17,9 @@ import static jakarta.persistence.GenerationType.IDENTITY;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EntityListeners(AuditingEntityListener.class)
+@EntityListeners(AuditingEntityListener.class) // @CreatedDate, @LastModifiedDate 작동하게 허용
 @ToString
-@Entity
+@Entity // 아래 클래스는 member 테이블과 대응되고 아래 클래스의 객체는 테이블의 row와 대응된다.
 @Getter
 public class Member {
     @Id

@@ -13,6 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.userdetails.MapReactiveUserDetailsService;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -77,7 +78,7 @@ public class MemberControllerTests {
         resultActions
                 .andExpect(handler().handlerType(MemberController.class))
                 .andExpect(handler().methodName("join"))
-                .andExpect(status().is3xxRedirection());
+                .andExpect(status().is3xxRedirection()); // 300으로 끝나야 함.
 
         Member member = memberService.findByUsername("user10").orElse(null);
 
@@ -188,7 +189,7 @@ public class MemberControllerTests {
         MvcResult mvcResult = resultActions.andReturn();
         HttpSession httpSession = mvcResult.getRequest().getSession(false);
         SecurityContext securityContext = (SecurityContext)httpSession.getAttribute("SPRING_SECURITY_CONTEXT");
-        User user = (User)securityContext.getAuthentication().getPrincipal();
+        User user = (User) securityContext.getAuthentication().getPrincipal();
 
         assertThat(user.getUsername()).isEqualTo("user1");
 
@@ -196,5 +197,25 @@ public class MemberControllerTests {
         resultActions
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrlPattern("/**"));
+    }
+
+    @Test
+    // @Rollback(value = false) // DB에 흔적이 남는다.
+    @DisplayName("로그인 후에 내비바에 로그인한 회원의 username")
+    @WithUserDetails("user1") // user1로 로그인 한 상태로 진행
+    void t006() throws Exception {
+        // WHEN
+        ResultActions resultActions = mvc
+                .perform(get("/member/me"))
+                .andDo(print());
+
+        // THEN
+        resultActions
+                .andExpect(handler().handlerType(MemberController.class))
+                .andExpect(handler().methodName("showMe"))
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(content().string(containsString("""
+                        user1님 환영합니다.
+                        """.stripIndent().trim())));
     }
 }
